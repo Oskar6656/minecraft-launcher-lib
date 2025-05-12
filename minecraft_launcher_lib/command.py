@@ -113,14 +113,24 @@ def get_arguments(data: list[str | ClientJsonArgumentRule], versionData: ClientJ
             if "rules" in i and not parse_rule_list(i["rules"], options):
                 continue
 
-            # Sometimes  i["value"] is the argument
-            if isinstance(i["values"], str):
+            if "value" in i:
+                value = i["value"]
+                if isinstance(value, str):
+                    arglist.append(replace_arguments(value, versionData, path, options, classpath))
+                else:
+                    for v in value:
+                        if isinstance(v, str):
+                            v = replace_arguments(v, versionData, path, options, classpath)
+                            arglist.append(v)
+
+            elif isinstance(i.get("values"), str):
                 arglist.append(replace_arguments(i["values"], versionData, path, options, classpath))
-            # Sometimes i["values"] is a list of arguments
-            else:
+
+            elif isinstance(i.get("values"), list):
                 for v in i["values"]:
-                    v = replace_arguments(v, versionData, path, options, classpath)
-                    arglist.append(v)
+                    if isinstance(v, str):
+                        v = replace_arguments(v, versionData, path, options, classpath)
+                        arglist.append(v)
     return arglist
 
 
